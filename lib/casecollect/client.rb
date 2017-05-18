@@ -14,28 +14,27 @@ module Casecollect
     end
 
     def cases
+      return enum_for(__method__) unless block_given?
+
       nt = nil
-      cs = []
       begin
         resp = @support.describe_cases(case_option(nt))
         nt = resp.next_token
-        cs += resp.cases
+        resp.cases.each {|c| yield c}
       end while nt
-
-      return cs
     end
 
     def communications
+      return enum_for(__method__) unless block_given?
+
       nt = nil
-      cs = {}
       begin
-        resp = @support.describe_cases(case_option(nt))
-        nt = resp.next_token
-        resp.cases.each do |c|
-          cs[c.display_id] = describe_communications(c)
+        cases do |c|
+          describe_communications(c) do |cc|
+            yield c.display_id, cc
+          end
         end
       end while nt
-      cs
     end
 
     private
@@ -59,14 +58,16 @@ module Casecollect
     end
 
     def describe_communications(case_detail)
+      return enum_for(__method__, case_detail) unless block_given?
+
       nt = nil
-      cs = []
       begin
         resp = @support.describe_communications(communication_option(case_detail.case_id, nt))
         nt = resp.next_token
-        cs += resp.communications
+        resp.communications.each do |c|
+          yield c
+        end
       end while nt
-      cs
     end
   end
 end

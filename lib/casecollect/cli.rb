@@ -19,7 +19,7 @@ module Casecollect
     desc :cases, "Collect AWS Support cases"
     def cases
       puts case_tsv_heaader
-      client.cases.each do |c|
+      client.cases do |c|
         puts case_tsv(c)
       end
     end
@@ -27,10 +27,8 @@ module Casecollect
     desc :communications, "Collect AWS Support communications"
     def communications
       puts communication_tsv_heaader
-      client.communications.each do |case_id, cs|
-        cs.each do |c|
-          puts "#{case_id}\t#{communication_tsv(c)}"
-        end
+      client.communications do |case_id, cc|
+        puts "#{case_id}\t#{communication_tsv(cc)}"
       end
     end
 
@@ -40,7 +38,7 @@ module Casecollect
     end
 
     def case_tsv(case_detail)
-      @@case_headers.collect {|h| case_detail[h] }.join("\t")
+      @@case_headers.collect {|h| %!"#{case_detail[h].gsub('"', '""')}"! }.join("\t")
     end
 
     def communication_tsv_heaader
@@ -48,7 +46,7 @@ module Casecollect
     end
 
     def communication_tsv(communication)
-      @@communication_headers.collect {|h| %!"#{communication[h]}"! }.join("\t")
+      @@communication_headers.collect {|h| %!"#{communication[h].gsub('"', '""')}"! }.join("\t")
     end
 
     def client
